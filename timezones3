@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Market Hours</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background: #ffffff;
+        color: #333;
+    }
+
+    .widget {
+        width: 100%;
+        max-width: 420px;
+        margin: auto;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    h2 {
+        text-align: left;
+        margin-bottom: 15px;
+        color: #444;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .session {
+        margin: 12px 0;
+    }
+
+    .label-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .progress-wrapper {
+        width: 100%;
+        background: #e5e5e5;
+        height: 12px;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress {
+        height: 12px;
+        background: #7cbc42; /* Myfxbook green */
+        width: 0%;
+        transition: width 0.3s linear;
+    }
+
+    .footer {
+        margin-top: 10px;
+        text-align: center;
+        font-size: 13px;
+        color: #666;
+    }
+</style>
+</head>
+<body>
+
+<div class="widget">
+    <h2>Market Hours</h2>
+    <div id="sessions"></div>
+
+    <div class="footer">
+        Market Hours clone – including Frankfurt<br>
+        Based on style inspiration from Myfxbook
+    </div>
+</div>
+
+<script>
+// Session times (UTC) — modified: Frankfurt instead of Sydney
+const sessions = [
+    { name: "Tokyo", open: 23, close: 8 },
+    { name: "Frankfurt", open: 7, close: 16 },
+    { name: "London", open: 8, close: 17 },
+    { name: "New York", open: 13, close: 22 }
+];
+
+function renderSessions() {
+    const container = document.getElementById("sessions");
+    container.innerHTML = "";
+
+    const now = new Date();
+    const utc = now.getUTCHours();
+
+    sessions.forEach(s => {
+        let progress = 0;
+
+        // Normal session
+        if (s.open < s.close) {
+            if (utc >= s.open && utc <= s.close) {
+                progress = ((utc - s.open) / (s.close - s.open)) * 100;
+            }
+        } else {
+            // Overnight session (not needed here but kept for safety)
+            if (utc >= s.open || utc <= s.close) {
+                progress = (utc >= s.open
+                    ? (utc - s.open)
+                    : (utc + (24 - s.open)))
+                    / (24 - s.open + s.close) * 100;
+            }
+        }
+
+        const row = document.createElement("div");
+        row.className = "session";
+
+        row.innerHTML = `
+            <div class="label-row">
+                <span>${s.name}</span>
+                <span>${now.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}</span>
+            </div>
+
+            <div class="progress-wrapper">
+                <div class="progress" style="width: ${progress}%;"></div>
+            </div>
+        `;
+
+        container.appendChild(row);
+    });
+}
+
+renderSessions();
+setInterval(renderSessions, 60000);
+</script>
+
+</body>
+</html>
